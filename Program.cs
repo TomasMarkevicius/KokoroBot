@@ -13,8 +13,10 @@ namespace KokoroBot
 
         static Channel currentChannel;
         static Random rng = new Random();
+        static bool mute = false;
         static void Main(string[] args)
         {
+            loadFiles();
             var client = new DiscordClient();
 
             //Display all log messages in the console
@@ -26,24 +28,40 @@ namespace KokoroBot
                 if (!e.Message.IsAuthor)
                 {
                     currentChannel = e.Channel;
-                    switch(e.Message.Text)
+                    if(e.Member.Name == "part")
                     {
-                        case "-waifu":
-                            await client.SendMessage(currentChannel, "KokoroBot is your waifu now.");
-                            break;
-                        case "-brainpower":
-                            await client.SendMessage(currentChannel, "Huehuehue.");
-                            await client.SendMessage(currentChannel, "You know...");
-                            await client.SendMessage(currentChannel, @">youtube https://www.youtube.com/watch?v=0bOV4ExHPZY");
-                            break;
-                        case "-praise":
-                            await client.SendMessage(currentChannel, "ALL PRAISE KARD (/O.o)/");
-                            break;
-                        case "-kardfacts":
-                            await client.SendMessage(currentChannel, kardFacts());
-                            break;
-                        default:
-                            break;
+                        if(e.Message.Text == "-mute")
+                        {
+                            mute = !mute;
+                            await client.SendMessage(currentChannel, "KokoroBot is now mute: " + mute.ToString());
+                        }
+                        else if(e.Message.Text == "-save")
+                        {
+                            saveFiles();
+                            await client.SendMessage(currentChannel, "I have saved everything :3");
+                        }
+                    }
+                    if (!mute)
+                    {
+                        switch (e.Message.Text)
+                        {
+                            case "-waifu":
+                                await client.SendMessage(currentChannel, "KokoroBot is your waifu now.");
+                                break;
+                            case "-brainpower":
+                                await client.SendMessage(currentChannel, "Huehuehue.");
+                                await client.SendMessage(currentChannel, "You know...");
+                                await client.SendMessage(currentChannel, @">youtube https://www.youtube.com/watch?v=0bOV4ExHPZY");
+                                break;
+                            case "-praise":
+                                await client.SendMessage(currentChannel, "ALL PRAISE KARD (/O.o)/");
+                                break;
+                            case "-kardfacts":
+                                await client.SendMessage(currentChannel, kardFacts());
+                                break;
+                            default:
+                                break;
+                        }
                     }
                 }
             };
@@ -57,6 +75,7 @@ namespace KokoroBot
                 if (!client.Servers.Any())
                     await client.AcceptInvite("");
             });
+
         }
 
         static string kardFacts()
@@ -64,14 +83,16 @@ namespace KokoroBot
             return kardFactsStrings[rng.Next(0, kardFactsStrings.Length)];
         }
 
-        static string[] kardFactsStrings = new string[] 
+        static string[] kardFactsStrings;
+
+        static void saveFiles()
         {
-            "You should always praise Kard.", 
-            "Kard is love. Kard is life.",
-            "Kards listen to electronic music. A lot.",
-            "Theres a high probabilty that Kard is in your channel.",
-            "The KokoroBot runs out of Kardfacts very fast.",
-            "Kard backwards is drak."
-        };
+            File.WriteAllLines("kardfacts.txt", kardFactsStrings);
+        }
+
+        static void loadFiles()
+        {
+            kardFactsStrings = File.ReadAllLines("kardfacts.txt");
+        }
     }
 }
