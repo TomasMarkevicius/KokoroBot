@@ -9,6 +9,8 @@ namespace KokoroBot
 {
     class Program
     {
+
+        static Channel currentChannel;
         static void Main(string[] args)
         {
             var client = new DiscordClient();
@@ -20,7 +22,25 @@ namespace KokoroBot
             client.MessageCreated += async (s, e) =>
             {
                 if (!e.Message.IsAuthor)
-                    await client.SendMessage(e.Channel, e.Message.Text);
+                {
+                    currentChannel = e.Channel;
+                    switch(e.Message.Text)
+                    {
+                        case "-waifu":
+                            await client.SendMessage(currentChannel, "KokoroBot is your waifu now.");
+                            break;
+                        case "-brainpower":
+                            await client.SendMessage(currentChannel, "Huehuehue.");
+                            await client.SendMessage(currentChannel, "You know...");
+                            await client.SendMessage(currentChannel, @">youtube https://www.youtube.com/watch?v=0bOV4ExHPZY");
+                            break;
+                        case "-praise":
+                            await client.SendMessage(currentChannel, "ALL PRAISE KARD (/O.o)/");
+                            break;
+                        default:
+                            break;
+                    }
+                }
             };
 
             //Convert our sync method to an async one and block the Main function until the bot disconnects

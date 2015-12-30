@@ -1,0 +1,5 @@
+Sensitive.cs
+*.exe
+obj/Debug/KokoroBot.pdb
+*.pdb
+bin/Debug/KokoroBot.exe
