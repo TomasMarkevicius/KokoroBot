@@ -1,0 +1,14 @@
+D:\dev\vs 2015 c#\KokoroBot\KokoroBot\bin\Debug\KokoroBot.exe.config
+D:\dev\vs 2015 c#\KokoroBot\KokoroBot\bin\Debug\KokoroBot.exe
+D:\dev\vs 2015 c#\KokoroBot\KokoroBot\bin\Debug\KokoroBot.pdb
+D:\dev\vs 2015 c#\KokoroBot\KokoroBot\bin\Debug\Discord.Net.Commands.dll
+D:\dev\vs 2015 c#\KokoroBot\KokoroBot\bin\Debug\Discord.Net.dll
+D:\dev\vs 2015 c#\KokoroBot\KokoroBot\bin\Debug\Newtonsoft.Json.dll
+D:\dev\vs 2015 c#\KokoroBot\KokoroBot\bin\Debug\RestSharp.dll
+D:\dev\vs 2015 c#\KokoroBot\KokoroBot\bin\Debug\Discord.Net.xml
+D:\dev\vs 2015 c#\KokoroBot\KokoroBot\bin\Debug\Discord.Net.Commands.xml
+D:\dev\vs 2015 c#\KokoroBot\KokoroBot\bin\Debug\Newtonsoft.Json.xml
+D:\dev\vs 2015 c#\KokoroBot\KokoroBot\bin\Debug\RestSharp.xml
+D:\dev\vs 2015 c#\KokoroBot\KokoroBot\obj\Debug\KokoroBot.csprojResolveAssemblyReference.cache
+D:\dev\vs 2015 c#\KokoroBot\KokoroBot\obj\Debug\KokoroBot.exe
+D:\dev\vs 2015 c#\KokoroBot\KokoroBot\obj\Debug\KokoroBot.pdb
