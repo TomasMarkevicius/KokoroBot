@@ -53,12 +53,16 @@ namespace KokoroBot
                             {
                                 await client.Disconnect();
                             }
+                            else if(e.Message.Text == "-restart")
+                            {
+                                await client.SendMessage(currentChannel, "Cya on the other side :3");
+                                restart = true;
+                                await client.Disconnect();
+                            }
                         }
                         else if (e.Member.Name == "part")
                         {
                             await client.SendMessage(currentChannel, "I don't like you. B-b-baka. >.<");
-                            restart = true;
-                            await client.Disconnect();
                         }
                         if (!mute)
                         {
