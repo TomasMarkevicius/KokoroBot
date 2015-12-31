@@ -25,6 +25,7 @@ namespace KokoroBot
             //Echo back any message received, provided it didn't come from the bot itself
             client.MessageCreated += async (s, e) =>
             {
+                Console.WriteLine(e.Message.User.Name + ": " + e.Message.Text);
                 if (!e.Message.IsAuthor)
                 {
                     currentChannel = e.Channel;
@@ -45,9 +46,10 @@ namespace KokoroBot
                             await client.Disconnect();
                         }
                     }
-                    else if (e.Member.Name == "part")
+                    else if (e.Member.User.Name == "part")
                     {
                         await client.SendMessage(currentChannel, "I don't like you. B-b-baka. >.<");
+                        return;
                     }
                     if (!mute)
                     {
