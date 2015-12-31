@@ -10,11 +10,11 @@ namespace KokoroBot
 {
     class Program
     {
-
-        static Channel currentChannel;
+        static IDiscordVoiceClient voiceclient = null;
         static Random rng = new Random();
         static bool mute = false;
         static bool restart = false;
+        
         static void Main(string[] args)
         {
             if (!restart)
@@ -26,17 +26,20 @@ namespace KokoroBot
                 restart = false;
             }
             {
-                var client = new DiscordClient();
+                DiscordClientConfig config = new DiscordClientConfig();
+                config.VoiceMode = DiscordVoiceMode.Outgoing;
+                var client = new DiscordClient(config);
+                
                 //Display all log messages in the console
                 client.LogMessage += (s, e) => Console.WriteLine($"[{e.Severity}] {e.Source}: {e.Message}");
-
+                
                 //Echo back any message received, provided it didn't come from the bot itself
                 client.MessageCreated += async (s, e) =>
                 {
                     Console.WriteLine(e.Message.User.Name + ": " + e.Message.Text);
                     if (!e.Message.IsAuthor)
                     {
-                        currentChannel = e.Channel;
+                        var currentChannel = e.Channel;
                         if (e.Member.UserId == "95543627391959040")
                         {
                             if (e.Message.Text == "-mute")
@@ -53,11 +56,22 @@ namespace KokoroBot
                             {
                                 await client.Disconnect();
                             }
-                            else if(e.Message.Text == "-restart")
+                            else if (e.Message.Text == "-restart")
                             {
                                 await client.SendMessage(currentChannel, "Cya on the other side :3");
                                 restart = true;
                                 await client.Disconnect();
+                            }
+                            else if (e.Message.Text.StartsWith("-join"))
+                            {
+                                var channels = e.Server.Channels.Where((Channel chan) => {
+                                    return e.Message.Text.Substring(5).TrimStart(' ') == chan.Name && chan.Type == ChannelTypes.Voice;  });
+                                if (channels.Any())
+                                {
+                                    var channel = channels.First();
+                                    Console.WriteLine("KokoroBot tries to join Channel: " + channel.Name);
+                                    voiceclient = await client.JoinVoiceServer(channel);
+                                }
                             }
                         }
                         else if (e.Member.Name == "part")
@@ -90,6 +104,7 @@ namespace KokoroBot
                                                 {
                                                     kardFactsStrings.Add(finalstr);
                                                     await client.SendMessage(currentChannel, "A new fact about Kard has been added. (Yay ^-^):");
+                                                    currentChannel = e.Channel;
                                                     await client.SendMessage(currentChannel, finalstr);
                                                 }
                                                 else
@@ -128,14 +143,10 @@ namespace KokoroBot
                                     await client.SendMessage(currentChannel, e.Message.UserId);
                                     break;
                                 case "-part":
-                                    await client.SendMessage(currentChannel, "part is the baka who created this bot. Fun fact: a");
+                                    await client.SendMessage(currentChannel, "part is the baka who created this bot.");
                                     break;
                                 case "-amazing":
-                                    await client.SendMessage(currentChannel, "Amazing");
-                                    await client.SendMessage(currentChannel, "Amazing");
-                                    await client.SendMessage(currentChannel, "Amazing");
-                                    await client.SendMessage(currentChannel, "Amazing");
-                                    await client.SendMessage(currentChannel, "Amazing");
+                                    await client.SendMessage(currentChannel, "Amazing \nAmazing \nAmazing \nAmazing \nAmazing");
                                     break;
                                 default:
                                     break;
@@ -149,9 +160,36 @@ namespace KokoroBot
                 {
                     //Connect to the Discord server using our email and password
                     await client.Connect(Sensitive.email, Sensitive.passwd);
+                    bool running = true;
+                    while (running)
+                    {
+                        var inputTask = Task.Run<string>((Func<string>)Console.ReadLine);
+                        await inputTask;
+                        string dbgCommand = inputTask.Result;
+                        if( dbgCommand == "exit")
+                        {
+                            running = false;
+                            await client.Disconnect();
+                        } else if ( dbgCommand == "listservers")
+                        {
+                            foreach(Server s in client.Servers)
+                            {
+                                Console.WriteLine("#######################################");
+                                Console.WriteLine("Servername: " + s.Name);
+                                Console.WriteLine("Voicechannels: ");
+                                foreach(Channel c in s.VoiceChannels)
+                                {
+                                    Console.WriteLine("    "+c.Name);
+                                }
+                                Console.WriteLine("Channels: ");
+                                foreach (Channel c in s.Channels)
+                                {
+                                    Console.WriteLine("    "+c.Name);
+                                }
+                            }
+                        }
+                    }
                     //If we are not a member of any server, use our invite code (made beforehand in the official Discord Client)
-                    if (!client.Servers.Any())
-                        await client.AcceptInvite("");
                 });
             }
             if (!restart)
