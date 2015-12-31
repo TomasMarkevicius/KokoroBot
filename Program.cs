@@ -28,21 +28,73 @@ namespace KokoroBot
                 if (!e.Message.IsAuthor)
                 {
                     currentChannel = e.Channel;
-                    if(e.Member.Name == "part")
+                    if (e.Member.UserId == "95543627391959040")
                     {
-                        if(e.Message.Text == "-mute")
+                        if (e.Message.Text == "-mute")
                         {
                             mute = !mute;
                             await client.SendMessage(currentChannel, "KokoroBot is now mute: " + mute.ToString());
                         }
-                        else if(e.Message.Text == "-save")
+                        else if (e.Message.Text == "-save")
                         {
                             saveFiles();
                             await client.SendMessage(currentChannel, "I have saved everything :3");
                         }
+                        else if (e.Message.Text == "-dc")
+                        {
+                            await client.Disconnect();
+                        }
+                    }
+                    else if (e.Member.Name == "part")
+                    {
+                        await client.SendMessage(currentChannel, "I don't like you. B-b-baka. >.<");
                     }
                     if (!mute)
                     {
+                        if (e.Message.Text.Length > 0)
+                        {
+                            string[] splitmessage = e.Message.Text.Split(' ');
+                            if (splitmessage[0] == "-kardfacts")
+                            {
+                                if (splitmessage.Length > 2)
+                                {
+                                    if (splitmessage[1] == "add")
+                                    {
+                                        try
+                                        {
+                                            string finalstr = "";
+                                            for (int i = 2; i < splitmessage.Length; i++)
+                                            {
+                                                if (i != 2)
+                                                    finalstr += ' ' + splitmessage[i];
+                                                else
+                                                    finalstr = splitmessage[i];
+                                            }
+                                            if (finalstr.Length > 5)
+                                            {
+                                                kardFactsStrings.Add(finalstr);
+                                                await client.SendMessage(currentChannel, "A new fact about Kard has been added. (Yay ^-^):");
+                                                await client.SendMessage(currentChannel, finalstr);
+                                            }
+                                            else
+                                            {
+                                                throw new IOException("Hue.");
+                                            }
+                                        }
+                                        catch (Exception except)
+                                        {
+                                            await client.SendMessage(currentChannel, "That hurt <.< Don't do this again, ok? :3");
+                                        }
+
+                                    }
+                                }
+                                else
+                                {
+                                    await client.SendMessage(currentChannel, kardFacts());
+                                }
+                            }
+                        }
+
                         switch (e.Message.Text)
                         {
                             case "-waifu":
@@ -56,8 +108,8 @@ namespace KokoroBot
                             case "-praise":
                                 await client.SendMessage(currentChannel, "ALL PRAISE KARD (/O.o)/");
                                 break;
-                            case "-kardfacts":
-                                await client.SendMessage(currentChannel, kardFacts());
+                            case "-getclientid":
+                                await client.SendMessage(currentChannel, e.Message.UserId);
                                 break;
                             default:
                                 break;
@@ -75,24 +127,25 @@ namespace KokoroBot
                 if (!client.Servers.Any())
                     await client.AcceptInvite("");
             });
+            saveFiles();
 
         }
 
         static string kardFacts()
         {
-            return kardFactsStrings[rng.Next(0, kardFactsStrings.Length)];
+            return kardFactsStrings[rng.Next(0, kardFactsStrings.Count)];
         }
 
-        static string[] kardFactsStrings;
+        static List<string> kardFactsStrings;
 
         static void saveFiles()
         {
-            File.WriteAllLines("kardfacts.txt", kardFactsStrings);
+            File.WriteAllLines("kardfacts.txt", kardFactsStrings.ToArray());
         }
 
         static void loadFiles()
         {
-            kardFactsStrings = File.ReadAllLines("kardfacts.txt");
+            kardFactsStrings = new List<string>(File.ReadAllLines("kardfacts.txt"));
         }
     }
 }
