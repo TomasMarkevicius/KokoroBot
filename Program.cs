@@ -63,6 +63,7 @@ namespace KokoroBot
                         else if (e.Member.Name == "part")
                         {
                             await client.SendMessage(currentChannel, "I don't like you. B-b-baka. >.<");
+                            return;
                         }
                         if (!mute)
                         {
@@ -128,6 +129,13 @@ namespace KokoroBot
                                     break;
                                 case "-part":
                                     await client.SendMessage(currentChannel, "part is the baka who created this bot. Fun fact: a");
+                                    break;
+                                case "-amazing":
+                                    await client.SendMessage(currentChannel, "Amazing");
+                                    await client.SendMessage(currentChannel, "Amazing");
+                                    await client.SendMessage(currentChannel, "Amazing");
+                                    await client.SendMessage(currentChannel, "Amazing");
+                                    await client.SendMessage(currentChannel, "Amazing");
                                     break;
                                 default:
                                     break;
