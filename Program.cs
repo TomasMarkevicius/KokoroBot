@@ -5,15 +5,18 @@ using System.Text;
 using System.Threading.Tasks;
 using System.IO;
 using Discord;
+using NAudio;
 
 namespace KokoroBot
 {
     class Program
     {
-        static IDiscordVoiceClient voiceclient = null;
+        static Discord.Audio.IDiscordVoiceClient voiceclient = null;
+        static Server voiceserver = null;
         static Random rng = new Random();
         static bool mute = false;
         static bool restart = false;
+        static bool quit = false;
         
         static void Main(string[] args)
         {
@@ -28,19 +31,20 @@ namespace KokoroBot
             {
                 DiscordClientConfig config = new DiscordClientConfig();
                 config.VoiceMode = DiscordVoiceMode.Outgoing;
+                config.VoiceBufferLength = 40;
                 var client = new DiscordClient(config);
                 
                 //Display all log messages in the console
                 client.LogMessage += (s, e) => Console.WriteLine($"[{e.Severity}] {e.Source}: {e.Message}");
                 
                 //Echo back any message received, provided it didn't come from the bot itself
-                client.MessageCreated += async (s, e) =>
+                client.MessageReceived += async (s, e) =>
                 {
                     Console.WriteLine(e.Message.User.Name + ": " + e.Message.Text);
                     if (!e.Message.IsAuthor)
                     {
                         var currentChannel = e.Channel;
-                        if (e.Member.UserId == "95543627391959040")
+                        if (e.User.Id == 95543627391959040)
                         {
                             if (e.Message.Text == "-mute")
                             {
@@ -54,6 +58,7 @@ namespace KokoroBot
                             }
                             else if (e.Message.Text == "-dc")
                             {
+                                quit = true;
                                 await client.Disconnect();
                             }
                             else if (e.Message.Text == "-restart")
@@ -65,16 +70,27 @@ namespace KokoroBot
                             else if (e.Message.Text.StartsWith("-join"))
                             {
                                 var channels = e.Server.Channels.Where((Channel chan) => {
-                                    return e.Message.Text.Substring(5).TrimStart(' ') == chan.Name && chan.Type == ChannelTypes.Voice;  });
+                                    return e.Message.Text.Substring(5).TrimStart(' ') == chan.Name && chan.Type == ChannelType.Voice;  });
                                 if (channels.Any())
                                 {
                                     var channel = channels.First();
                                     Console.WriteLine("KokoroBot tries to join Channel: " + channel.Name);
                                     voiceclient = await client.JoinVoiceServer(channel);
+                                    voiceserver = e.Message.Server;
+                                }
+                            }
+                            else if (e.Message.Text == "-leave")
+                            {
+                                if (voiceclient != null)
+                                {
+                                    voiceclient.ClearVoicePCM();
+                                    await client.LeaveVoiceServer(voiceserver);
+                                    voiceclient = null;
+                                    voiceserver = null;
                                 }
                             }
                         }
-                        else if (e.Member.Name == "part")
+                        else if (e.User.Name == "part")
                         {
                             await client.SendMessage(currentChannel, "I don't like you. B-b-baka. >.<");
                             return;
@@ -116,12 +132,41 @@ namespace KokoroBot
                                             {
                                                 await client.SendMessage(currentChannel, "That hurt <.< Don't do this again, ok? :3");
                                             }
-
                                         }
                                     }
                                     else
                                     {
                                         await client.SendMessage(currentChannel, kardFacts());
+                                    }
+                                }
+                                else if( e.Message.Text.StartsWith("-play"))
+                                {
+                                    if (e.Message.Text.Length > "-play ".Length && voiceclient != null)
+                                    {
+                                        string file = e.Message.Text.Substring("-play ".Length);
+
+                                        Console.WriteLine("Trying to play: " + file);
+                                        var ws = new NAudio.Wave.WaveFileReader(file);
+                                        if (ws.WaveFormat.Channels > 1)
+                                        {
+                                            var tomono = new NAudio.Wave.StereoToMonoProvider16(ws);
+                                            tomono.RightVolume = 0.5f;
+                                            tomono.LeftVolume = 0.5f;
+                                            byte[] buf = new byte[ws.Length];
+                                            tomono.Read(buf, 0, (int)ws.Length);
+                                            await Task.Run(() => { voiceclient.SendVoicePCM(buf, buf.Length); });
+                                            ws.Dispose();
+                                        }
+                                        else
+                                        {
+                                            byte[] buf = new byte[ws.Length];
+                                            ws.Read(buf, 0, (int)ws.Length);
+                                            await Task.Run(() => { voiceclient.SendVoicePCM(buf, buf.Length); });
+                                            ws.Dispose();
+                                        }
+;
+
+                                       
                                     }
                                 }
                             }
@@ -140,7 +185,7 @@ namespace KokoroBot
                                     await client.SendMessage(currentChannel, "ALL PRAISE KARD (/O.o)/");
                                     break;
                                 case "-getclientid":
-                                    await client.SendMessage(currentChannel, e.Message.UserId);
+                                    await client.SendMessage(currentChannel, e.Message.User.Id.ToString());
                                     break;
                                 case "-part":
                                     await client.SendMessage(currentChannel, "part is the baka who created this bot.");
@@ -166,13 +211,13 @@ namespace KokoroBot
                         var inputTask = Task.Run<string>((Func<string>)Console.ReadLine);
                         await inputTask;
                         string dbgCommand = inputTask.Result;
-                        if( dbgCommand == "exit")
+                        if( dbgCommand == "exit" || restart || quit)
                         {
                             running = false;
                             await client.Disconnect();
                         } else if ( dbgCommand == "listservers")
                         {
-                            foreach(Server s in client.Servers)
+                            foreach(Server s in client.AllServers)
                             {
                                 Console.WriteLine("#######################################");
                                 Console.WriteLine("Servername: " + s.Name);
@@ -194,7 +239,7 @@ namespace KokoroBot
             }
             if (!restart)
             { 
-            saveFiles();
+                saveFiles();
             }
             else
             {

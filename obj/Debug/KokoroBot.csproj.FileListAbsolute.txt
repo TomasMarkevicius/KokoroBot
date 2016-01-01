@@ -13,3 +13,8 @@ D:\dev\vs 2015 c#\KokoroBot\KokoroBot\obj\Debug\KokoroBot.pdb
 D:\dev\vs 2015 c#\KokoroBot\KokoroBot\bin\Debug\websocket-sharp.dll
 D:\dev\vs 2015 c#\KokoroBot\KokoroBot\bin\Debug\websocket-sharp.xml
 D:\dev\vs 2015 c#\KokoroBot\KokoroBot\bin\Debug\lib\opus.dll
+D:\dev\vs 2015 c#\KokoroBot\KokoroBot\bin\Debug\NAudio.dll
+D:\dev\vs 2015 c#\KokoroBot\KokoroBot\bin\Debug\NAudio.xml
+D:\dev\vs 2015 c#\KokoroBot\KokoroBot\bin\Debug\lib\libsodium.dll
+D:\dev\vs 2015 c#\KokoroBot\KokoroBot\bin\Debug\Discord.Net.pdb
+D:\dev\vs 2015 c#\KokoroBot\KokoroBot\bin\Debug\lib\libopus.so
