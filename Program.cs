@@ -51,6 +51,11 @@ namespace KokoroBot
                                 mute = !mute;
                                 await client.SendMessage(currentChannel, "KokoroBot is now mute: " + mute.ToString());
                             }
+                            else if (e.Message.Text == "-clear")
+                            {
+                                if (voiceclient != null)
+                                    voiceclient.ClearVoicePCM();
+                            }
                             else if (e.Message.Text == "-save")
                             {
                                 saveFiles();
@@ -141,33 +146,7 @@ namespace KokoroBot
                                 }
                                 else if( e.Message.Text.StartsWith("-play"))
                                 {
-                                    if (e.Message.Text.Length > "-play ".Length && voiceclient != null)
-                                    {
-                                        string file = e.Message.Text.Substring("-play ".Length);
-
-                                        Console.WriteLine("Trying to play: " + file);
-                                        var ws = new NAudio.Wave.WaveFileReader(file);
-                                        if (ws.WaveFormat.Channels > 1)
-                                        {
-                                            var tomono = new NAudio.Wave.StereoToMonoProvider16(ws);
-                                            tomono.RightVolume = 0.5f;
-                                            tomono.LeftVolume = 0.5f;
-                                            byte[] buf = new byte[ws.Length];
-                                            tomono.Read(buf, 0, (int)ws.Length);
-                                            await Task.Run(() => { voiceclient.SendVoicePCM(buf, buf.Length); });
-                                            ws.Dispose();
-                                        }
-                                        else
-                                        {
-                                            byte[] buf = new byte[ws.Length];
-                                            ws.Read(buf, 0, (int)ws.Length);
-                                            await Task.Run(() => { voiceclient.SendVoicePCM(buf, buf.Length); });
-                                            ws.Dispose();
-                                        }
-;
-
-                                       
-                                    }
+                                    Task.Run( () => { PlaySoundWav(e); } );
                                 }
                             }
 
@@ -192,6 +171,9 @@ namespace KokoroBot
                                     break;
                                 case "-amazing":
                                     await client.SendMessage(currentChannel, "Amazing \nAmazing \nAmazing \nAmazing \nAmazing");
+                                    break;
+                                case "-??":
+                                    await client.SendMessage(currentChannel, "@?? \n??\n??\n??\n??\n??\n??\n??\n??\n??");
                                     break;
                                 default:
                                     break;
@@ -244,6 +226,41 @@ namespace KokoroBot
             else
             {
                 Main(new string[] { });
+            }
+        }
+
+        private static void PlaySoundWav(MessageEventArgs e)
+        {
+            if (e.Message.Text.Length > "-play ".Length && voiceclient != null)
+            {
+                string file = e.Message.Text.Substring("-play ".Length);
+
+                Console.WriteLine("Trying to play: " + file);
+                var ws = new NAudio.Wave.WaveFileReader(file);
+                byte[] buf;
+                if (ws.WaveFormat.Channels > 1)
+                {
+                    var tomono = new NAudio.Wave.StereoToMonoProvider16(ws);
+                    tomono.RightVolume = 0.5f;
+                    tomono.LeftVolume = 0.5f;
+                    buf = new byte[ws.Length];
+                    while (ws.HasData(ws.WaveFormat.AverageBytesPerSecond))
+                    {
+                        tomono.Read(buf, 0, ws.WaveFormat.AverageBytesPerSecond);
+                        voiceclient.SendVoicePCM(buf, buf.Length);
+                    }
+                }
+                else
+                {
+                    buf = new byte[ws.WaveFormat.AverageBytesPerSecond];
+                    while (ws.HasData(ws.WaveFormat.AverageBytesPerSecond))
+                    {
+                        ws.Read(buf, 0, ws.WaveFormat.AverageBytesPerSecond);
+                        voiceclient.SendVoicePCM(buf, buf.Length);
+                    }
+                }
+                ws.Dispose();
+
             }
         }
 
