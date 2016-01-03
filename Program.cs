@@ -13,7 +13,7 @@ namespace KokoroBot
     {
         static Discord.Audio.IDiscordVoiceClient voiceclient = null;
         static Server voiceserver = null;
-        static Random rng = new Random();
+        public static Random rng = new Random();
         static bool mute = false;
         static bool restart = false;
         static bool quit = false;
@@ -100,8 +100,7 @@ namespace KokoroBot
                             await client.SendMessage(currentChannel, "I don't like you. B-b-baka. >.<");
                             return;
                         }
-                        if (!mute)
-                        {
+                        if (!mute) {
                             if (e.Message.Text.Length > 0)
                             {
                                 string[] splitmessage = e.Message.Text.Split(' ');
@@ -133,7 +132,7 @@ namespace KokoroBot
                                                     throw new IOException("Hue.");
                                                 }
                                             }
-                                            catch (Exception except)
+                                            catch (Exception)
                                             {
                                                 await client.SendMessage(currentChannel, "That hurt <.< Don't do this again, ok? :3");
                                             }
@@ -158,7 +157,7 @@ namespace KokoroBot
                                                return u.Name.StartsWith(e.Message.Text.Substring("-getclientid ".Length));
                                            }).First().Id.ToString());
                                         }
-                                        catch(Exception nu)
+                                        catch(Exception)
                                         {
                                             await client.SendMessage(currentChannel, "User does not exist. B-baka.");
                                         }
@@ -169,8 +168,11 @@ namespace KokoroBot
                                     }
                                 }
                             }
-
-                            await handleSimpleCommands(e, client, currentChannel);
+                            if (await handleSimpleCommands(e, client, currentChannel) == false)
+                            {
+                                await Tired.handleCommands(e, client, currentChannel);
+                            }
+                            
                         }
                     }
                 };
@@ -222,7 +224,7 @@ namespace KokoroBot
             }
         }
 
-        private static async Task handleSimpleCommands(MessageEventArgs e, DiscordClient client, Channel currentChannel)
+        private static async Task<bool> handleSimpleCommands(MessageEventArgs e, DiscordClient client, Channel currentChannel)
         {
             switch (e.Message.Text)
             {
@@ -250,8 +252,9 @@ namespace KokoroBot
                     await client.SendMessage(currentChannel, sayoFacts());
                     break;
                 default:
-                    break;
+                    return false;
             }
+            return true;
         }
 
         private async static void PlaySoundWav(MessageEventArgs e)
@@ -283,7 +286,7 @@ namespace KokoroBot
                     }
                     ws.Close();
                 }
-                catch(Exception excp)
+                catch(Exception)
                 {
                     Console.WriteLine("File not found or incompatible.");
                 }
