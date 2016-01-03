@@ -9,7 +9,7 @@ using NAudio;
 
 namespace KokoroBot
 {
-    class Program
+    partial class Program
     {
         static Discord.Audio.IDiscordVoiceClient voiceclient = null;
         static Server voiceserver = null;
@@ -170,7 +170,7 @@ namespace KokoroBot
                             }
                             if (await handleSimpleCommands(e, client, currentChannel) == false)
                             {
-                                await Tired.handleCommands(e, client, currentChannel);
+                                await handleTiroCommands(e, client, currentChannel);
                             }
                             
                         }

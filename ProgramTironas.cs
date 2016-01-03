@@ -7,9 +7,9 @@ using Discord;
 
 namespace KokoroBot
 {
-    class Tired
+    partial class Program
     {
-        static string Tillerino(string userID)
+        static string getTillerinoText(string userID)
         {
             switch (userID)
             {
@@ -35,7 +35,7 @@ namespace KokoroBot
             "Panda Eyes & Teminite - Highscore [Tironas[Fixing]] future you: 210pp 95%: 180pp | 98%: 207pp | 99%: 230pp | 100%: 270pp | 2:00 ★ 5.84 ♫ 110 AR10"
         };
 
-        internal async static Task handleCommands(MessageEventArgs e, DiscordClient client, Channel currentChannel)
+        internal async static Task handleTiroCommands(MessageEventArgs e, DiscordClient client, Channel currentChannel)
         {
             switch(e.Message.Text)
             {
@@ -43,7 +43,7 @@ namespace KokoroBot
                     await client.SendMessage(currentChannel, "is THAT another TOUHOU map???");
                     break;
                 case "!r":
-                    await client.SendMessage(currentChannel, Tillerino(e.Message.User.Id.ToString()));
+                    await client.SendMessage(currentChannel, getTillerinoText(e.Message.User.Id.ToString()));
                     break;
                 default:
                     break;
