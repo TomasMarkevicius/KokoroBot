@@ -144,40 +144,33 @@ namespace KokoroBot
                                         await client.SendMessage(currentChannel, kardFacts());
                                     }
                                 }
-                                else if( e.Message.Text.StartsWith("-play"))
+                                else if (e.Message.Text.StartsWith("-play"))
                                 {
-                                    Task.Run( () => { PlaySoundWav(e); } );
+                                    Task.Run(() => { PlaySoundWav(e); });
+                                }
+                                else if(e.Message.Text.StartsWith("-getclientid"))
+                                {
+                                    if (e.Message.Text.Length > "-getclientid ".Length)
+                                    {
+                                        try {
+                                            await client.SendMessage(currentChannel, e.Server.Members.Where((User u) =>
+                                           {
+                                               return u.Name.StartsWith(e.Message.Text.Substring("-getclientid ".Length));
+                                           }).First().Id.ToString());
+                                        }
+                                        catch(Exception nu)
+                                        {
+                                            await client.SendMessage(currentChannel, "User does not exist. B-baka.");
+                                        }
+                                    }
+                                    else
+                                    {
+                                        await client.SendMessage(currentChannel, e.Message.User.Id.ToString());
+                                    }
                                 }
                             }
 
-                            switch (e.Message.Text)
-                            {
-                                case "-waifu":
-                                    await client.SendMessage(currentChannel, "KokoroBot is your waifu now.");
-                                    break;
-                                case "-brainpower":
-                                    await client.SendMessage(currentChannel, "Huehuehue.");
-                                    await client.SendMessage(currentChannel, "You know...");
-                                    await client.SendMessage(currentChannel, @">youtube https://www.youtube.com/watch?v=0bOV4ExHPZY");
-                                    break;
-                                case "-praise":
-                                    await client.SendMessage(currentChannel, "ALL PRAISE KARD (/O.o)/");
-                                    break;
-                                case "-getclientid":
-                                    await client.SendMessage(currentChannel, e.Message.User.Id.ToString());
-                                    break;
-                                case "-part":
-                                    await client.SendMessage(currentChannel, "part is the baka who created this bot.");
-                                    break;
-                                case "-amazing":
-                                    await client.SendMessage(currentChannel, "Amazing \nAmazing \nAmazing \nAmazing \nAmazing");
-                                    break;
-                                case "-??":
-                                    await client.SendMessage(currentChannel, "@?? \n??\n??\n??\n??\n??\n??\n??\n??\n??");
-                                    break;
-                                default:
-                                    break;
-                            }
+                            await handleSimpleCommands(e, client, currentChannel);
                         }
                     }
                 };
@@ -229,37 +222,71 @@ namespace KokoroBot
             }
         }
 
-        private static void PlaySoundWav(MessageEventArgs e)
+        private static async Task handleSimpleCommands(MessageEventArgs e, DiscordClient client, Channel currentChannel)
+        {
+            switch (e.Message.Text)
+            {
+                case "-waifu":
+                    await client.SendMessage(currentChannel, "KokoroBot is your waifu now.");
+                    break;
+                case "-brainpower":
+                    await client.SendMessage(currentChannel, "Huehuehue.");
+                    await client.SendMessage(currentChannel, "You know...");
+                    await client.SendMessage(currentChannel, @">youtube https://www.youtube.com/watch?v=0bOV4ExHPZY");
+                    break;
+                case "-praise":
+                    await client.SendMessage(currentChannel, "ALL PRAISE KARD (/O.o)/");
+                    break;
+                case "-part":
+                    await client.SendMessage(currentChannel, "part is the baka who created this bot.");
+                    break;
+                case "-amazing":
+                    await client.SendMessage(currentChannel, "Amazing \nAmazing \nAmazing \nAmazing \nAmazing");
+                    break;
+                case "-??":
+                    await client.SendMessage(currentChannel, "??\n??\n??\n??\n??\n??\n??\n??\n??");
+                    break;
+                case "-sayo":
+                    await client.SendMessage(currentChannel, sayoFacts());
+                    break;
+                default:
+                    break;
+            }
+        }
+
+        private async static void PlaySoundWav(MessageEventArgs e)
         {
             if (e.Message.Text.Length > "-play ".Length && voiceclient != null)
             {
                 string file = e.Message.Text.Substring("-play ".Length);
-
                 Console.WriteLine("Trying to play: " + file);
-                var ws = new NAudio.Wave.WaveFileReader(file);
-                byte[] buf;
-                if (ws.WaveFormat.Channels > 1)
-                {
-                    var tomono = new NAudio.Wave.StereoToMonoProvider16(ws);
-                    tomono.RightVolume = 0.5f;
-                    tomono.LeftVolume = 0.5f;
-                    buf = new byte[ws.Length];
-                    while (ws.HasData(ws.WaveFormat.AverageBytesPerSecond))
+                try {
+                    var ws = new NAudio.Wave.WaveFileReader(file);
+                    byte[] buf;
+                    if (ws.WaveFormat.Channels > 1)
                     {
-                        tomono.Read(buf, 0, ws.WaveFormat.AverageBytesPerSecond);
+                        var tomono = new NAudio.Wave.StereoToMonoProvider16(ws);
+                        tomono.RightVolume = 0.5f;
+                        tomono.LeftVolume = 0.5f;
+                        buf = new byte[ws.Length];
+                        while (ws.HasData(ws.WaveFormat.AverageBytesPerSecond))
+                        {
+                            tomono.Read(buf, 0, ws.WaveFormat.AverageBytesPerSecond);
+                            voiceclient.SendVoicePCM(buf, buf.Length);
+                        }
+                    }
+                    else
+                    {
+                        buf = new byte[ws.Length];
+                        ws.Read(buf, 0, buf.Length);
                         voiceclient.SendVoicePCM(buf, buf.Length);
                     }
+                    ws.Close();
                 }
-                else
+                catch(Exception excp)
                 {
-                    buf = new byte[ws.WaveFormat.AverageBytesPerSecond];
-                    while (ws.HasData(ws.WaveFormat.AverageBytesPerSecond))
-                    {
-                        ws.Read(buf, 0, ws.WaveFormat.AverageBytesPerSecond);
-                        voiceclient.SendVoicePCM(buf, buf.Length);
-                    }
+                    Console.WriteLine("File not found or incompatible.");
                 }
-                ws.Dispose();
 
             }
         }
@@ -269,7 +296,15 @@ namespace KokoroBot
             return kardFactsStrings[rng.Next(0, kardFactsStrings.Count)];
         }
 
+        static string sayoFacts()
+        {
+            var rngresult = rng.Next(0, sayoQuestStrings.Length);
+            return "Question:" + sayoQuestStrings[rngresult] + "\nAnswer:" + sayoAnswStrings[rngresult];
+        }
+
         static List<string> kardFactsStrings;
+        static string[] sayoQuestStrings;
+        static string[] sayoAnswStrings;
 
         static void saveFiles()
         {
@@ -279,6 +314,47 @@ namespace KokoroBot
         static void loadFiles()
         {
             kardFactsStrings = new List<string>(File.ReadAllLines("kardfacts.txt"));
+            var saystrings = new List<string>(File.ReadAllLines("sayo.txt"));
+            sayoQuestStrings = new string[19];
+            sayoAnswStrings = new string[19];
+            sayoAnswStrings.Initialize();
+            sayoQuestStrings.Initialize();
+            int currentnum = 0;
+            bool answer = true;
+            foreach(string s in saystrings)
+            {
+                if (s.Length > 0)
+                {
+                    if (char.IsDigit(s[0]))
+                    {
+                        currentnum = Int32.Parse(s);
+                        answer = !answer;
+                    }
+                    else if (answer)
+                    {
+                        if (sayoAnswStrings[currentnum] != "")
+                        {
+                            sayoAnswStrings[currentnum] += '\n'+"    " + s;
+                        }
+                        else
+                        {
+                            sayoAnswStrings[currentnum] += "    "+s;
+                        }
+                    }
+                    else
+                    {
+                        if (sayoQuestStrings[currentnum] != "")
+                        {
+                            sayoQuestStrings[currentnum] += '\n' + s;
+                        }
+                        else
+                        {
+                            sayoQuestStrings[currentnum] += s;
+                        }
+                    }
+                }
+            }
+
         }
     }
 }
