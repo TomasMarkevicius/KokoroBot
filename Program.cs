@@ -17,11 +17,14 @@ namespace KokoroBot
         static bool mute = false;
         static bool restart = false;
         static bool quit = false;
-        
+        static bool running = true;
+        static KokoroBotRPG rpg;
+
         static void Main(string[] args)
         {
             if (!restart)
             {
+                rpg = new KokoroBotRPG();
                 loadFiles();
             }
             else
@@ -64,12 +67,13 @@ namespace KokoroBot
                             else if (e.Message.Text == "-dc")
                             {
                                 quit = true;
-                                await client.Disconnect();
+                                running = false;
                             }
                             else if (e.Message.Text == "-restart")
                             {
                                 await client.SendMessage(currentChannel, "Cya on the other side :3");
                                 restart = true;
+                                running = false;
                                 await client.Disconnect();
                             }
                             else if (e.Message.Text.StartsWith("-join"))
@@ -167,11 +171,16 @@ namespace KokoroBot
                                         await client.SendMessage(currentChannel, e.Message.User.Id.ToString());
                                     }
                                 }
+                                else if(e.Message.Text.StartsWith(":"))
+                                {
+                                    await rpg.HandleCommands(e, client, currentChannel);
+                                }
+                                else if (await handleSimpleCommands(e, client, currentChannel) == false)
+                                {
+                                    await handleTiroCommands(e, client, currentChannel);
+                                }
                             }
-                            if (await handleSimpleCommands(e, client, currentChannel) == false)
-                            {
-                                await handleTiroCommands(e, client, currentChannel);
-                            }
+
                             
                         }
                     }
@@ -182,7 +191,7 @@ namespace KokoroBot
                 {
                     //Connect to the Discord server using our email and password
                     await client.Connect(Sensitive.email, Sensitive.passwd);
-                    bool running = true;
+
                     while (running)
                     {
                         var inputTask = Task.Run<string>((Func<string>)Console.ReadLine);
@@ -312,10 +321,13 @@ namespace KokoroBot
         static void saveFiles()
         {
             File.WriteAllLines("kardfacts.txt", kardFactsStrings.ToArray());
+            rpg.Save();
         }
 
         static void loadFiles()
         {
+            rpg.Load();
+
             kardFactsStrings = new List<string>(File.ReadAllLines("kardfacts.txt"));
             var saystrings = new List<string>(File.ReadAllLines("sayo.txt"));
             sayoQuestStrings = new string[19];
