@@ -80,6 +80,7 @@ namespace KokoroBot
         public async Task HandleCommands(MessageEventArgs e, DiscordClient client, Channel currentChannel)
         {
             try {
+                string log = "";
                 string clean_message = e.Message.Text.Substring(1);
                 if (!players.ContainsKey(e.User.Id))
                 {
@@ -119,7 +120,8 @@ namespace KokoroBot
                         }
                         if(command == "level")
                         {
-                            await client.SendMessage(currentChannel, target + " is level "+target_plr.level+" | "+target_plr.xp+'/'+ (target_plr.level * target_plr.level));
+                            log += target + " is level "+target_plr.level+" | "+target_plr.xp+'/'+ (target_plr.level * target_plr.level) + '\n';
+                            await client.SendMessage(currentChannel, log);
                             return;
                         }
                         var bytes = Encoding.UTF8.GetBytes(target_usr + command);
@@ -132,11 +134,11 @@ namespace KokoroBot
                         //await client.SendMessage(currentChannel, e.User.Name + ' ' + command + "s " + target + '.');
                         if (absolutedamage > 0)
                         {
-                            await client.SendMessage(currentChannel, "It deals " + absolutedamage.ToString() + " damage.");
+                            log += "It deals " + absolutedamage.ToString() + " damage." + '\n';
                         }
                         else
                         {
-                            await client.SendMessage(currentChannel, "It heals for " + absolutedamage.ToString() + " damage.");
+                            log += "It heals for " + absolutedamage.ToString() + " damage." + '\n';
                         }
                         target_plr.hp -= absolutedamage;
                         if (target_plr.hp <= 0)
@@ -146,16 +148,16 @@ namespace KokoroBot
                             {
                                 float xpgain = target_plr.level * 2;
                                 player.xp += xpgain;
-                                await client.SendMessage(currentChannel, target + " has been killed and resurrected. +" + xpgain + "XP");
+                                log += target + " has been killed and resurrected. +" + xpgain + "XP" + '\n';
                             }
                             else
                             {
-                                await client.SendMessage(currentChannel, target + " has killed themselves and resurrected. +1 suicide attempt");
+                                log += target + " has killed themselves and resurrected. +1 suicide attempt" + '\n';
                             }
                         }
                         else
                         {
-                            await client.SendMessage(currentChannel, target + " has " + target_plr.hp + " left.");
+                            log += target + " has " + target_plr.hp + " left." + '\n';
                         }
                     }
                 }
@@ -168,7 +170,11 @@ namespace KokoroBot
                 {
                     player.xp = player.xp - (player.level * player.level);
                     player.level++;
-                    await client.SendMessage(currentChannel, e.User.Name + " has leveled up to Level " + player.level + '.');
+                    log += e.User.Name + " has leveled up to Level " + player.level + '.' + '\n';
+                }
+                if (log != "")
+                {
+                    await client.SendMessage(currentChannel, log);
                 }
             }
             catch(Exception)

@@ -40,7 +40,6 @@ namespace KokoroBot
                 //Display all log messages in the console
                 client.LogMessage += (s, e) => Console.WriteLine($"[{e.Severity}] {e.Source}: {e.Message}");
                 
-                //Echo back any message received, provided it didn't come from the bot itself
                 client.MessageReceived += async (s, e) =>
                 {
                     Console.WriteLine(e.Message.User.Name + ": " + e.Message.Text);
