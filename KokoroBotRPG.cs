@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Security.Cryptography;
 using System.IO;
 using Discord;
 
@@ -14,6 +15,7 @@ namespace KokoroBot
         Dictionary<long, KRPG_player> players;
         Random rng;
         const int CURRENT_VERSION=1;
+        HashAlgorithm hshfnc = HashAlgorithm.Create("SHA");
 
         public KokoroBotRPG()
         {
@@ -97,6 +99,11 @@ namespace KokoroBot
                     var target_usr = validUsers.First();
                     if (target_usr != null)
                     {
+                        if(target_usr.Status == UserStatus.Offline)
+                        {
+                            await client.SendMessage(currentChannel, "But nobody came.." );
+                            return;
+                        }
                         if (!players.ContainsKey(target_usr.Id))
                         {
                             players.Add(target_usr.Id, new KRPG_player(target_usr.Id));
@@ -110,13 +117,19 @@ namespace KokoroBot
                         {
                             target_plr = players[target_usr.Id];
                         }
-                        int hash = (target_usr + command).GetHashCode();
+                        if(command == "level")
+                        {
+                            await client.SendMessage(currentChannel, target + " is level "+target_plr.level+" | "+target_plr.xp+'/'+ (target_plr.level * target_plr.level));
+                            return;
+                        }
+                        var bytes = Encoding.UTF8.GetBytes(target_usr + command);
+                        byte hash_b = hshfnc.ComputeHash(bytes)[0];
                         float variation = 0.4f + 0.01f * rng.Next(60);
-                        hash = hash >> 25;
+                        float hash = hash_b / 2;
                         float scale = 0.01f * (hash - 28);
-                        float damagescale = 100.0f - (100.0f * (1.0f / ((player.level + 1) * 0.2f)));
+                        float damagescale = 100.0f - (100.0f * (1.0f / ((player.level + 1))));
                         float absolutedamage = (damagescale * variation) * scale;
-                        await client.SendMessage(currentChannel, e.User.Name + ' ' + command + "s " + target + '.');
+                        //await client.SendMessage(currentChannel, e.User.Name + ' ' + command + "s " + target + '.');
                         if (absolutedamage > 0)
                         {
                             await client.SendMessage(currentChannel, "It deals " + absolutedamage.ToString() + " damage.");
@@ -178,9 +191,9 @@ namespace KokoroBot
             }
             set
             {
-                if(value > 10.0 * Math.Pow(1.2, level))
+                if(value > 10.0 * Math.Pow(1.4, level))
                 {
-                    _hp = (float)(10.0 * Math.Pow(1.2, level));
+                    _hp = (float)(10.0 * Math.Pow(1.4, level));
                 }
                 else
                 {
